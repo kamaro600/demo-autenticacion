@@ -13,6 +13,12 @@ RUN dotnet restore AuthDemo.sln
 
 # Copy everything else and build
 COPY . ./
+
+# Copy appsettings.example.json as appsettings.json if it doesn't exist
+RUN if [ ! -f src/API/appsettings.json ]; then \
+    cp src/API/appsettings.example.json src/API/appsettings.json; \
+    fi
+
 RUN dotnet publish src/API/API.csproj -c Release -o out
 
 # Build runtime image

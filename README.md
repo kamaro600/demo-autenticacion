@@ -54,7 +54,7 @@ DISCORD_CLIENT_SECRET=tu-discord-client-secret
 DISCORD_REDIRECT_URI=http://localhost:3000/auth/discord/callback
 ```
 
-> **Nota**: Docker Compose usará estas variables para configurar todos los servicios.
+> **✅ Nota**: El Dockerfile automáticamente usa `appsettings.example.json` como plantilla si no existe `appsettings.json`. Las credenciales se configuran mediante variables de entorno desde el `.env`.
 
 ### 3. Configuración para Desarrollo Local (Sin Docker)
 
