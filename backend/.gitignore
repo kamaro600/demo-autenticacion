@@ -405,3 +405,9 @@ FodyWeavers.xsd
 *.db-wal
 *.sqlite
 *.sqlite3
+
+# Configuration files with secrets
+appsettings.json
+appsettings.Development.json
+appsettings.*.json
+
