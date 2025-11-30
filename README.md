@@ -142,7 +142,6 @@ REACT_APP_DISCORD_REDIRECT_URI=http://localhost:3000/auth/discord/callback
 3. En OAuth2, agrega redirect: `http://localhost:3000/auth/discord/callback`
 4. Scopes necesarios: `identify`, `email`
 
-Ver [DISCORD_OAUTH_SETUP.md](./DISCORD_OAUTH_SETUP.md) para más detalles.
 
 ## 🐳 Ejecución con Docker (Recomendado)
 
@@ -181,43 +180,6 @@ npm install
 npm start
 ```
 
-## 💻 Desarrollo Local (Sin Docker)
-
-### Backend
-
-```bash
-cd backend
-
-# Restaurar dependencias
-dotnet restore
-
-# Configurar appsettings (ver paso 2 de configuración inicial)
-# Asegúrate de tener MySQL corriendo localmente en puerto 3306
-
-# Ejecutar API
-dotnet run --project src/API
-```
-
-✅ Backend disponible en: http://localhost:5000  
-📚 Swagger UI: http://localhost:5000/swagger
-
-### Frontend
-
-```bash
-cd frontend
-
-# Instalar dependencias
-npm install
-
-# Configurar .env (ver paso 3 de configuración inicial)
-
-# Ejecutar en modo desarrollo
-npm start
-```
-
-✅ Frontend disponible en: http://localhost:3000
-
-## 📁 Estructura del Proyecto
 
 ```
 demo-autenticacion/
@@ -325,24 +287,3 @@ Para producción, asegúrate de:
 - 🔄 Los refresh tokens duran 7 días
 - 🔐 MFA usa algoritmo TOTP (RFC 6238) con 6 dígitos
 - 🌐 CORS configurado para `localhost:3000` y `frontend:3000`
-- 📦 Frontend usa `serve` en Docker (puerto 3000) en lugar de nginx
-
-## 🤝 Contribuir
-
-Este es un proyecto de demostración educativa. Siéntete libre de:
-- Hacer fork del proyecto
-- Crear issues para sugerencias
-- Enviar pull requests con mejoras
-
-## 📄 Licencia
-
-Este proyecto es de código abierto para fines educativos.
-
-## 📧 Contacto
-
-Si tienes preguntas sobre la implementación, revisa la documentación adicional:
-- [Configuración Discord OAuth](./DISCORD_OAUTH_SETUP.md)
-
----
-
-**Happy Coding!** 🚀
