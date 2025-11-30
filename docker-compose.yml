@@ -1,0 +1,92 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: authdemo-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - authdemo-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: authdemo-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=${MYSQL_DATABASE};Uid=root;Pwd=${MYSQL_ROOT_PASSWORD};CharSet=utf8mb4;
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - JwtSettings__AccessTokenExpirationMinutes=${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+      - JwtSettings__RefreshTokenExpirationDays=${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+      - OAuth__Google__ClientId=${GOOGLE_CLIENT_ID}
+      - OAuth__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      - OAuth__GitHub__ClientId=${GITHUB_CLIENT_ID}
+      - OAuth__GitHub__ClientSecret=${GITHUB_CLIENT_SECRET}
+      - OAuth__GitHub__RedirectUri=${GITHUB_REDIRECT_URI}
+      - OAuth__Discord__ClientId=${DISCORD_CLIENT_ID}
+      - OAuth__Discord__ClientSecret=${DISCORD_CLIENT_SECRET}
+      - OAuth__Discord__RedirectUri=${DISCORD_REDIRECT_URI}
+    ports:
+      - "${BACKEND_PORT}:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - authdemo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: authdemo-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    depends_on:
+      - backend
+    networks:
+      - authdemo-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: authdemo-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${PHPMYADMIN_PORT}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - authdemo-network
+
+volumes:
+  mysql_data:
+
+networks:
+  authdemo-network:
+    driver: bridge

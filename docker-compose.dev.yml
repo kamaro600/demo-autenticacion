@@ -1,0 +1,38 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: authdemo-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: AuthDemoDB
+      MYSQL_USER: authuser
+      MYSQL_PASSWORD: authpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - authdemo-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: authdemo-phpmyadmin-dev
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - authdemo-network
+
+volumes:
+  mysql_dev_data:
+
+networks:
+  authdemo-network:
+    driver: bridge
