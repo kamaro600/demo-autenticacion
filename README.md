@@ -28,9 +28,37 @@ git clone https://github.com/kamaro600/demo-autenticacion.git
 cd demo-autenticacion
 ```
 
-### 2. Configurar Backend (appsettings.json)
+### 2. Configuración para Docker (Recomendado)
 
-Copia el archivo de ejemplo y configura tus credenciales OAuth:
+Copia y configura el archivo `.env` en la raíz del proyecto:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` con tus credenciales OAuth:
+
+```env
+# OAuth - Google
+GOOGLE_CLIENT_ID=tu-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=tu-google-client-secret
+
+# OAuth - GitHub
+GITHUB_CLIENT_ID=tu-github-client-id
+GITHUB_CLIENT_SECRET=tu-github-client-secret
+GITHUB_REDIRECT_URI=http://localhost:3000/auth/github/callback
+
+# OAuth - Discord
+DISCORD_CLIENT_ID=tu-discord-client-id
+DISCORD_CLIENT_SECRET=tu-discord-client-secret
+DISCORD_REDIRECT_URI=http://localhost:3000/auth/discord/callback
+```
+
+> **Nota**: Docker Compose usará estas variables para configurar todos los servicios.
+
+### 3. Configuración para Desarrollo Local (Sin Docker)
+
+#### Backend - appsettings.json
 
 ```bash
 cd backend/src/API
@@ -38,10 +66,13 @@ cp appsettings.example.json appsettings.json
 cp appsettings.example.json appsettings.Development.json
 ```
 
-Edita `appsettings.json` y `appsettings.Development.json` con tus credenciales:
+Edita `appsettings.json` y `appsettings.Development.json`:
 
 ```json
 {
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=3306;Database=AuthDemoDB;Uid=root;Pwd=rootpassword;"
+  },
   "OAuth": {
     "Google": {
       "ClientId": "tu-google-client-id.apps.googleusercontent.com",
@@ -58,20 +89,24 @@ Edita `appsettings.json` y `appsettings.Development.json` con tus credenciales:
       "ClientSecret": "tu-discord-client-secret",
       "RedirectUri": "http://localhost:3000/auth/discord/callback"
     }
+  },
+  "Jwt": {
+    "SecretKey": "your-jwt-secret-key-at-least-32-characters-long",
+    "Issuer": "AuthDemoAPI",
+    "Audience": "AuthDemoClient",
+    "ExpirationMinutes": 60
   }
 }
 ```
 
-### 3. Configurar Frontend (.env)
-
-Copia el archivo de ejemplo:
+#### Frontend - .env
 
 ```bash
 cd frontend
 cp .env.example .env
 ```
 
-Edita `frontend/.env` con tus Client IDs:
+Edita `frontend/.env`:
 
 ```env
 REACT_APP_API_URL=http://localhost:5000/api
