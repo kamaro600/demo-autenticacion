@@ -1,4 +1,4 @@
-# Demo de Autenticación - .NET 8 Web API + React
+# Demo de Autenticación - .NET 9 Web API + React
 
 Sistema completo de autenticación con soporte para login tradicional, OAuth social y MFA (Multi-Factor Authentication).
 
@@ -8,63 +8,98 @@ Sistema completo de autenticación con soporte para login tradicional, OAuth soc
 - ✅ Autenticación JWT con refresh tokens
 - ✅ OAuth 2.0 con Google, GitHub y Discord
 - ✅ MFA con TOTP (Google Authenticator/Authy)
-- ✅ Base de datos MySQL
+- ✅ Base de datos MySQL 8.0
 - ✅ Arquitectura limpia (Clean Architecture)
-- ✅ Docker support
+- ✅ Despliegue completo con Docker
+- ✅ Frontend React con TypeScript y Tailwind CSS
 
 ## 📋 Requisitos
 
 - Docker y Docker Compose
-- .NET 9 SDK (para desarrollo local)
-- Node.js 18+ (para desarrollo local)
-- MySQL 8.0 (para desarrollo local)
+- .NET 9 SDK (opcional, para desarrollo local)
+- Node.js 20+ (opcional, para desarrollo local)
 
 ## 🔧 Configuración Inicial
 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <tu-repositorio>
+git clone https://github.com/kamaro600/demo-autenticacion.git
 cd demo-autenticacion
 ```
 
-### 2. Configurar variables de entorno
+### 2. Configurar Backend (appsettings.json)
 
-Copia el archivo `.env.example` y renómbralo a `.env`:
+Copia el archivo de ejemplo y configura tus credenciales OAuth:
 
 ```bash
+cd backend/src/API
+cp appsettings.example.json appsettings.json
+cp appsettings.example.json appsettings.Development.json
+```
+
+Edita `appsettings.json` y `appsettings.Development.json` con tus credenciales:
+
+```json
+{
+  "OAuth": {
+    "Google": {
+      "ClientId": "tu-google-client-id.apps.googleusercontent.com",
+      "ClientSecret": "tu-google-client-secret",
+      "RedirectUri": "http://localhost:3000/auth/google/callback"
+    },
+    "GitHub": {
+      "ClientId": "tu-github-client-id",
+      "ClientSecret": "tu-github-client-secret",
+      "RedirectUri": "http://localhost:3000/auth/github/callback"
+    },
+    "Discord": {
+      "ClientId": "tu-discord-client-id",
+      "ClientSecret": "tu-discord-client-secret",
+      "RedirectUri": "http://localhost:3000/auth/discord/callback"
+    }
+  }
+}
+```
+
+### 3. Configurar Frontend (.env)
+
+Copia el archivo de ejemplo:
+
+```bash
+cd frontend
 cp .env.example .env
 ```
 
-Edita el archivo `.env` y configura tus credenciales OAuth:
+Edita `frontend/.env` con tus Client IDs:
 
 ```env
-# OAuth - Google
-GOOGLE_CLIENT_ID=tu-google-client-id
-GOOGLE_CLIENT_SECRET=tu-google-client-secret
+REACT_APP_API_URL=http://localhost:5000/api
 
-# OAuth - GitHub
-GITHUB_CLIENT_ID=tu-github-client-id
-GITHUB_CLIENT_SECRET=tu-github-client-secret
+REACT_APP_GOOGLE_CLIENT_ID=tu-google-client-id.apps.googleusercontent.com
+REACT_APP_GITHUB_CLIENT_ID=tu-github-client-id
+REACT_APP_DISCORD_CLIENT_ID=tu-discord-client-id
 
-# OAuth - Discord
-DISCORD_CLIENT_ID=tu-discord-client-id
-DISCORD_CLIENT_SECRET=tu-discord-client-secret
+REACT_APP_GITHUB_REDIRECT_URI=http://localhost:3000/auth/github/callback
+REACT_APP_DISCORD_REDIRECT_URI=http://localhost:3000/auth/discord/callback
 ```
 
-### 3. Obtener credenciales OAuth
+### 4. Obtener credenciales OAuth
 
 #### Google OAuth
 1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
 2. Crea un nuevo proyecto
 3. Habilita Google+ API
 4. Crea credenciales OAuth 2.0
-5. Agrega URI de redirección: `http://localhost:3000`
+5. Agrega URIs de redirección autorizadas:
+   - `http://localhost:3000`
+   - `http://localhost:3000/auth/google/callback`
 
 #### GitHub OAuth
 1. Ve a [GitHub Developer Settings](https://github.com/settings/developers)
 2. Crea una nueva OAuth App
-3. Authorization callback URL: `http://localhost:3000/auth/github/callback`
+3. Homepage URL: `http://localhost:3000`
+4. Authorization callback URL: `http://localhost:3000/auth/github/callback`
 
 #### Discord OAuth
 1. Ve a [Discord Developer Portal](https://discord.com/developers/applications)
@@ -74,9 +109,9 @@ DISCORD_CLIENT_SECRET=tu-discord-client-secret
 
 Ver [DISCORD_OAUTH_SETUP.md](./DISCORD_OAUTH_SETUP.md) para más detalles.
 
-## 🐳 Ejecución con Docker
+## 🐳 Ejecución con Docker (Recomendado)
 
-### Producción (Todo en Docker)
+### Modo Producción (Todo en Docker)
 
 ```bash
 # Iniciar todos los servicios
@@ -86,17 +121,20 @@ docker-compose up --build
 docker-compose down
 ```
 
-Accede a:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **Swagger**: http://localhost:5000/swagger
-- **PHPMyAdmin**: http://localhost:8081
+**Servicios disponibles:**
+- 🌐 **Frontend (React)**: http://localhost:3000
+- 🚀 **Backend API**: http://localhost:5000/api
+- 📚 **Swagger UI**: http://localhost:5000/swagger
+- 🗄️ **PHPMyAdmin**: http://localhost:8081 (usuario: `root`, contraseña: `rootpassword`)
+- 💾 **MySQL**: `localhost:3306`
 
-### Desarrollo (Solo Base de Datos)
+### Modo Desarrollo (Solo Base de Datos en Docker)
+
+Útil para desarrollo con hot-reload:
 
 ```bash
 # Iniciar solo MySQL y PHPMyAdmin
-docker-compose -f docker-compose.dev.yml up
+docker-compose -f docker-compose.dev.yml up -d
 
 # En otra terminal, ejecutar backend
 cd backend
@@ -118,17 +156,15 @@ cd backend
 # Restaurar dependencias
 dotnet restore
 
-# Configurar base de datos
-# Editar src/API/appsettings.Development.json con tu connection string
-
-# Ejecutar migraciones (si existen)
-dotnet ef database update --project src/Infrastructure --startup-project src/API
+# Configurar appsettings (ver paso 2 de configuración inicial)
+# Asegúrate de tener MySQL corriendo localmente en puerto 3306
 
 # Ejecutar API
 dotnet run --project src/API
 ```
 
-Backend disponible en: http://localhost:5000
+✅ Backend disponible en: http://localhost:5000  
+📚 Swagger UI: http://localhost:5000/swagger
 
 ### Frontend
 
@@ -138,65 +174,69 @@ cd frontend
 # Instalar dependencias
 npm install
 
-# Copiar archivo de variables de entorno
-cp .env.example .env
-
-# Editar .env con tus Client IDs
-# REACT_APP_GOOGLE_CLIENT_ID=...
-# REACT_APP_GITHUB_CLIENT_ID=...
-# REACT_APP_DISCORD_CLIENT_ID=...
+# Configurar .env (ver paso 3 de configuración inicial)
 
 # Ejecutar en modo desarrollo
 npm start
 ```
 
-Frontend disponible en: http://localhost:3000
+✅ Frontend disponible en: http://localhost:3000
 
 ## 📁 Estructura del Proyecto
 
 ```
 demo-autenticacion/
-├── backend/                    # API .NET 9
+├── backend/                          # API .NET 9
 │   ├── src/
-│   │   ├── Domain/            # Entidades y lógica de negocio
-│   │   ├── Application/       # DTOs, interfaces y servicios
-│   │   ├── Infrastructure/    # Implementaciones y DbContext
-│   │   └── API/              # Controllers y configuración
+│   │   ├── Domain/                  # Entidades y lógica de negocio
+│   │   ├── Application/             # DTOs, interfaces y servicios de aplicación
+│   │   ├── Infrastructure/          # DbContext, repositorios, servicios externos
+│   │   └── API/                     # Controllers, Program.cs, configuración
+│   │       ├── appsettings.example.json    # ⚠️ Template con placeholders
+│   │       ├── appsettings.json            # ⚠️ Credenciales reales (ignorado por git)
+│   │       └── appsettings.Development.json # ⚠️ Credenciales dev (ignorado por git)
 │   ├── Dockerfile
-│   └── .env.example
-├── frontend/                   # React + TypeScript
+│   └── .gitignore
+├── frontend/                         # React 18 + TypeScript + Tailwind
 │   ├── src/
-│   │   ├── components/       # Componentes reutilizables
-│   │   ├── pages/           # Páginas principales
-│   │   ├── contexts/        # Context API (Auth)
-│   │   ├── services/        # API client (Axios)
-│   │   └── config/          # Configuración OAuth
+│   │   ├── components/              # Componentes de OAuth (GoogleLoginButton, etc.)
+│   │   ├── pages/                   # Login, Register, Dashboard, MfaSetup
+│   │   ├── contexts/                # AuthContext (gestión de autenticación)
+│   │   ├── services/                # api.ts (Axios client)
+│   │   └── config/                  # google.ts, github.ts, discord.ts
+│   ├── public/
 │   ├── Dockerfile
-│   ├── nginx.conf
-│   └── .env.example
+│   ├── .env.example                 # ⚠️ Template de variables de entorno
+│   ├── .env                         # ⚠️ Variables reales (ignorado por git)
+│   ├── package.json
+│   └── .gitignore
 ├── database/
-│   └── init.sql             # Script inicial de BD
-├── docker-compose.yml        # Producción
-├── docker-compose.dev.yml    # Desarrollo
-├── .env.example
+│   └── init.sql                     # Script de inicialización MySQL
+├── docker-compose.yml               # Producción (mysql + backend + frontend + phpmyadmin)
+├── docker-compose.dev.yml           # Desarrollo (solo mysql + phpmyadmin)
 ├── .gitignore
 └── README.md
 ```
 
 ## 🔐 Seguridad
 
-### Archivos sensibles (NO commitear)
+### ⚠️ Archivos con credenciales (NO están en git)
 
-Los siguientes archivos están en `.gitignore`:
-- `.env`
-- `backend/appsettings.Development.json`
-- `frontend/.env.local`
-- `backend/src/API/appsettings.Development.json`
+Estos archivos contienen secretos y están excluidos del repositorio:
+- ✅ `backend/src/API/appsettings.json`
+- ✅ `backend/src/API/appsettings.Development.json`
+- ✅ `frontend/.env`
+
+### 📄 Archivos de ejemplo (SÍ están en git)
+
+Usa estos templates para crear tus archivos de configuración:
+- `backend/src/API/appsettings.example.json`
+- `frontend/.env.example`
 
 ### Configuración de producción
 
 Para producción, asegúrate de:
-1. Cambiar todas las contraseñas y secrets
+1. Cambiar todas las contraseñas y secrets (especialmente JWT SecretKey)
 2. Usar HTTPS
 3. Configurar CORS apropiadamente
 4. Usar secretos de al menos 256 bits para JWT
@@ -206,40 +246,51 @@ Para producción, asegúrate de:
 ## 📚 Endpoints Principales
 
 ### Autenticación
-- `POST /auth/register` - Registro de usuario
-- `POST /auth/login` - Login con credenciales
-- `POST /auth/refresh` - Renovar access token
-- `POST /auth/logout` - Cerrar sesión
+- `POST /api/auth/register` - Registro de usuario
+- `POST /api/auth/login` - Login con credenciales
+- `POST /api/auth/refresh` - Renovar access token
+- `POST /api/auth/logout` - Cerrar sesión
 
 ### OAuth
-- `POST /auth/external/google` - Login con Google
-- `POST /auth/external/github` - Login con GitHub
-- `POST /auth/external/discord` - Login con Discord
+- `POST /api/auth/external/google` - Login con Google
+- `POST /api/auth/external/github` - Login con GitHub
+- `POST /api/auth/external/discord` - Login con Discord
 
 ### MFA
-- `POST /mfa/setup` - Configurar MFA
-- `POST /mfa/verify-setup` - Verificar configuración MFA
-- `POST /mfa/verify` - Verificar código MFA
-- `POST /mfa/disable` - Deshabilitar MFA
+- `POST /api/mfa/setup` - Configurar MFA
+- `POST /api/mfa/verify-setup` - Verificar configuración MFA
+- `POST /api/mfa/verify` - Verificar código MFA
+- `POST /api/mfa/disable` - Deshabilitar MFA
 
-## 🧪 Testing
+## 🛠️ Stack Tecnológico
 
-```bash
-# Backend tests
-cd backend
-dotnet test
+### Backend
+- .NET 9 Web API
+- Entity Framework Core 9
+- MySQL 8.0 (Pomelo.EntityFrameworkCore.MySql)
+- JWT Authentication
+- Swagger/OpenAPI
 
-# Frontend tests
-cd frontend
-npm test
-```
+### Frontend
+- React 18
+- TypeScript
+- Tailwind CSS
+- Axios
+- React Router
 
-## 📝 Notas
+### DevOps
+- Docker & Docker Compose
+- Multi-stage builds
+- PHPMyAdmin para gestión de BD
 
-- El modo demo está habilitado por defecto en desarrollo
-- Los tokens JWT expiran en 15 minutos
-- Los refresh tokens duran 7 días
-- MFA usa algoritmo TOTP con 6 dígitos
+## 📝 Notas Importantes
+
+- ⚙️ El backend usa `Environment=Development` en Docker para exponer Swagger
+- 🔑 Los tokens JWT expiran en 60 minutos
+- 🔄 Los refresh tokens duran 7 días
+- 🔐 MFA usa algoritmo TOTP (RFC 6238) con 6 dígitos
+- 🌐 CORS configurado para `localhost:3000` y `frontend:3000`
+- 📦 Frontend usa `serve` en Docker (puerto 3000) en lugar de nginx
 
 ## 🤝 Contribuir
 
